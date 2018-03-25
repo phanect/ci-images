@@ -1,0 +1,41 @@
+version: 2
+
+jobs:
+  build:
+    working_directory: ~/ci-images
+    machine: true
+    steps:
+      - run:
+          name: System Update
+          command: |
+            sudo apt-get update -qq
+            # Remove unnecessary packages for faster dist-upgrade
+            sudo apt-get remove --yes \
+              build-essential \
+              default-jre openjdk-7-jre-headless \
+              openjdk-8-jdk openjdk-8-jdk-headless openjdk-8-jre openjdk-8-jre-headless \
+              gcc gcc-4.8 gfortran-4.8 \
+              google-chrome-stable \
+              google-cloud-sdk \
+              sbt
+            sudo apt-get autoremove --yes
+            DEBIAN_FRONTEND=noninteractive sudo apt-get dist-upgrade --yes
+
+      - checkout
+
+      # Test build
+      - run: sudo docker build --tag=phanect/ci-javascript ./ci-javascript
+
+      - deploy:
+          command: |
+            if [[ "${CIRCLE_BRANCH}" = "master" ]]; then
+              #
+              # If this build is master branch, deploy to npmjs.com
+              #
+              echo "$DOCKER_CLOUD_PASSWORD" | docker login --username="phanect" --password-stdin
+              docker push phanect/ci-javascript
+            else
+              echo "Deployment skipped"
+              echo "Current branch: \"${CIRCLE_BRANCH}\""
+              exit 1
+            fi
