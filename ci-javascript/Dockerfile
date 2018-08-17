@@ -8,7 +8,7 @@ RUN sudo apt-get remove --yes mercurial mercurial-common \
   && echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list \
   && curl --silent --show-error --location https://deb.nodesource.com/setup_8.x | sudo -E bash - \
   && sudo apt-get update -qq \
-  && DEBIAN_FRONTEND=noninteractive sudo apt-get install --yes git nodejs yarn \
+  && DEBIAN_FRONTEND=noninteractive sudo apt-get install --yes git nodejs rsync yarn \
   && sudo npm install --global npm \
   && DEBIAN_FRONTEND=noninteractive sudo apt-get autoremove --yes \
   && sudo apt-get clean \
