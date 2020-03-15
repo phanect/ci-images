@@ -3,7 +3,8 @@ version: 2.1
 executors:
   default:
     working_directory: ~/ci-images
-    machine: true
+    machine:
+      image: ubuntu-1604:201903-01
 
 commands:
   init:
@@ -14,13 +15,12 @@ commands:
             sudo apt-get update -qq
             # Remove unnecessary packages for faster dist-upgrade
             sudo apt-get remove --yes \
-              build-essential \
-              default-jre openjdk-7-jre-headless \
+              build-essential vim vim-runtime emacs emacs24 imagemagick \
               openjdk-8-jdk openjdk-8-jdk-headless openjdk-8-jre openjdk-8-jre-headless \
-              gcc gcc-4.8 gfortran-4.8 \
+              gcc gfortran-5 sbt \
+              snapd ubuntu-core-launcher \
               google-chrome-stable \
-              google-cloud-sdk \
-              sbt
+              google-cloud-sdk heroku
             sudo apt-get autoremove --yes
             DEBIAN_FRONTEND=noninteractive sudo apt-get dist-upgrade --yes
       - checkout
