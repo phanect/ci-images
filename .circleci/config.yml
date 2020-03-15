@@ -1,9 +1,13 @@
-version: 2
+version: 2.1
 
-jobs:
-  build:
+executors:
+  default:
     working_directory: ~/ci-images
-    machine: true
+    machine:
+      image: ubuntu-1604:201903-01
+
+commands:
+  init:
     steps:
       - run:
           name: System Update
@@ -11,30 +15,60 @@ jobs:
             sudo apt-get update -qq
             # Remove unnecessary packages for faster dist-upgrade
             sudo apt-get remove --yes \
-              build-essential \
-              default-jre openjdk-7-jre-headless \
+              build-essential vim vim-runtime emacs emacs24 imagemagick \
               openjdk-8-jdk openjdk-8-jdk-headless openjdk-8-jre openjdk-8-jre-headless \
-              gcc gcc-4.8 gfortran-4.8 \
+              gcc gfortran-5 sbt \
+              snapd ubuntu-core-launcher \
               google-chrome-stable \
-              google-cloud-sdk \
-              sbt
+              google-cloud-sdk heroku
             sudo apt-get autoremove --yes
             DEBIAN_FRONTEND=noninteractive sudo apt-get dist-upgrade --yes
-
       - checkout
 
-      # Test build
-      - run: sudo docker build --tag=phanect/ci-javascript ./ci-javascript
+jobs:
+  build:
+    executor:
+      name: default
+    steps:
+      - init
+      - run:
+          name: Test build
+          command: sudo docker build --tag=phanect/ci-javascript ./ci-javascript
 
-      - deploy:
+  release:
+    executor:
+      name: default
+    steps:
+      - init
+      - run:
+          name: Publish Docker Image
           command: |
-            if [[ "${CIRCLE_BRANCH}" = "master" ]]; then
-              #
-              # If this build is master branch, deploy to npmjs.com
-              #
-              echo "$DOCKER_CLOUD_PASSWORD" | docker login --username="phanect" --password-stdin
-              docker push phanect/ci-javascript
-            else
-              echo "Deployment skipped"
-              echo "Current branch: \"${CIRCLE_BRANCH}\""
-            fi
+            echo "$DOCKER_CLOUD_PASSWORD" | docker login --username="phanect" --password-stdin
+            docker push phanect/ci-javascript
+
+workflows:
+  version: 2.1
+  build-n-release:
+    jobs:
+      - build:
+          filters: # Run when any branches & tags pushed
+            tags:
+              only: /.*/
+      - release:
+          filters:
+            branches:
+              only:
+                - master
+          requires:
+            - build
+  periodic:
+    triggers:
+      - schedule:
+          cron: "8 22 * * 5" # At 22:08 on Friday
+          filters:
+            branches:
+              only:
+                - master
+    jobs:
+      - build
+      - release
