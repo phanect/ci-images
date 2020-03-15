@@ -1,9 +1,12 @@
-version: 2
+version: 2.1
 
-jobs:
-  build:
+executors:
+  default:
     working_directory: ~/ci-images
     machine: true
+
+commands:
+  init:
     steps:
       - run:
           name: System Update
@@ -20,21 +23,41 @@ jobs:
               sbt
             sudo apt-get autoremove --yes
             DEBIAN_FRONTEND=noninteractive sudo apt-get dist-upgrade --yes
-
       - checkout
 
-      # Test build
-      - run: sudo docker build --tag=phanect/ci-javascript ./ci-javascript
+jobs:
+  build:
+    executor:
+      name: default
+    steps:
+      - init
+      - run:
+          name: Test build
+          command: sudo docker build --tag=phanect/ci-javascript ./ci-javascript
 
-      - deploy:
+  release:
+    executor:
+      name: default
+    steps:
+      - init
+      - run:
+          name: Publish Docker Image
           command: |
-            if [[ "${CIRCLE_BRANCH}" = "master" ]]; then
-              #
-              # If this build is master branch, deploy to npmjs.com
-              #
-              echo "$DOCKER_CLOUD_PASSWORD" | docker login --username="phanect" --password-stdin
-              docker push phanect/ci-javascript
-            else
-              echo "Deployment skipped"
-              echo "Current branch: \"${CIRCLE_BRANCH}\""
-            fi
+            echo "$DOCKER_CLOUD_PASSWORD" | docker login --username="phanect" --password-stdin
+            docker push phanect/ci-javascript
+
+workflows:
+  version: 2.1
+  build-n-release:
+    jobs:
+      - build:
+          filters: # Run when any branches & tags pushed
+            tags:
+              only: /.*/
+      - release:
+          filters:
+            branches:
+              only:
+                - master
+          requires:
+            - build
