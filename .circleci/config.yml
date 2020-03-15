@@ -55,15 +55,15 @@ workflows:
     jobs:
       - build:
           filters: # Run when any branches & tags pushed
-            tags:
-              only: /.*/
+            branches:
+              # build job is not required in master since the same command runs in release job
+              ignore:
+                - master
       - release:
           filters:
             branches:
               only:
                 - master
-          requires:
-            - build
   periodic:
     triggers:
       - schedule:
