@@ -41,6 +41,9 @@ jobs:
     steps:
       - init
       - run:
+          name: Build Docker Image
+          command: sudo docker build --tag=phanect/ci-javascript ./ci-javascript
+      - run:
           name: Publish Docker Image
           command: |
             echo "$DOCKER_CLOUD_PASSWORD" | docker login --username="phanect" --password-stdin
