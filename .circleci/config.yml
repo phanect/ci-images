@@ -61,3 +61,14 @@ workflows:
                 - master
           requires:
             - build
+  periodic:
+    triggers:
+      - schedule:
+          cron: "8 22 * * 5" # At 22:08 on Friday
+          filters:
+            branches:
+              only:
+                - master
+    jobs:
+      - build
+      - release
