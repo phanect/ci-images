@@ -41,6 +41,9 @@ jobs:
     steps:
       - init
       - run:
+          name: Build Docker Image
+          command: sudo docker build --tag=phanect/ci-javascript ./ci-javascript
+      - run:
           name: Publish Docker Image
           command: |
             echo "$DOCKER_CLOUD_PASSWORD" | docker login --username="phanect" --password-stdin
@@ -52,15 +55,15 @@ workflows:
     jobs:
       - build:
           filters: # Run when any branches & tags pushed
-            tags:
-              only: /.*/
+            branches:
+              # build job is not required in master since the same command runs in release job
+              ignore:
+                - master
       - release:
           filters:
             branches:
               only:
                 - master
-          requires:
-            - build
   periodic:
     triggers:
       - schedule:
