@@ -4,25 +4,6 @@ executors:
   default:
     working_directory: ~/ci-images
     machine:
-
-commands:
-  init:
-    steps:
-      - run:
-          name: System Update
-          command: |
-            sudo apt-get update -qq
-            # Remove unnecessary packages for faster dist-upgrade
-            sudo apt-get remove --yes \
-              build-essential vim vim-runtime emacs emacs24 imagemagick \
-              openjdk-8-jdk openjdk-8-jdk-headless openjdk-8-jre openjdk-8-jre-headless \
-              gcc gfortran-5 sbt \
-              snapd ubuntu-core-launcher \
-              google-chrome-stable \
-              google-cloud-sdk heroku
-            sudo apt-get autoremove --yes
-            DEBIAN_FRONTEND=noninteractive sudo apt-get dist-upgrade --yes
-      - checkout
       image: ubuntu-2004:202107-02
 
 jobs:
@@ -30,7 +11,7 @@ jobs:
     executor:
       name: default
     steps:
-      - init
+      - checkout
       - run:
           name: Test build
           command: sudo docker build --tag=phanect/ci-javascript ./ci-javascript
@@ -39,7 +20,7 @@ jobs:
     executor:
       name: default
     steps:
-      - init
+      - checkout
       - run:
           name: Build Docker Image
           command: sudo docker build --tag=phanect/ci-javascript ./ci-javascript
