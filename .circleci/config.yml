@@ -4,7 +4,6 @@ executors:
   default:
     working_directory: ~/ci-images
     machine:
-      image: ubuntu-1604:201903-01
 
 commands:
   init:
@@ -24,6 +23,7 @@ commands:
             sudo apt-get autoremove --yes
             DEBIAN_FRONTEND=noninteractive sudo apt-get dist-upgrade --yes
       - checkout
+      image: ubuntu-2004:202107-02
 
 jobs:
   build:
