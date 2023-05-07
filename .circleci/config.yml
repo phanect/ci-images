@@ -37,14 +37,14 @@ workflows:
       - build:
           filters: # Run when any branches & tags pushed
             branches:
-              # build job is not required in master since the same command runs in release job
+              # build job is not required in main since the same command runs in release job
               ignore:
-                - master
+                - main
       - release:
           filters:
             branches:
               only:
-                - master
+                - main
   periodic:
     triggers:
       - schedule:
@@ -52,7 +52,7 @@ workflows:
           filters:
             branches:
               only:
-                - master
+                - main
     jobs:
       - build
       - release
